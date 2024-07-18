@@ -1,0 +1,17 @@
+name: ollama-bearer-auth
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: your-image-name:tag
+    ports:
+      - "8081:8081"
+    env_file:  # Import environment variables
+      - .env.local
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    volumes:
+      - ~/.ollama:/root/.ollama
+    restart: unless-stopped

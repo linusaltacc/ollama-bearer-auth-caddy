@@ -1,0 +1,37 @@
+{
+	# Enable logging
+	log {
+		output file access.log {
+			roll_size 5mb
+			roll_keep 2
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+:8081 {
+	# Forward authentication to the Python script
+	forward_auth /* localhost:9090 {
+		uri /validate
+		copy_headers Authorization
+		copy_headers Proxy-Status
+	}
+
+	@apiAuth {
+		header Proxy-Status valid_api_key
+	}
+
+	# Proxy authorized requests
+	reverse_proxy @apiAuth http://{$SERVER_IP}:{$SERVER_PORT}
+
+	# Define a matcher for unauthorized access
+	@unauthorized {
+		header Proxy-Status invalid_api_key
+	}
+
+	# Handle errors
+	handle_errors {
+		respond "Bad Gateway" 502
+	}
+}
